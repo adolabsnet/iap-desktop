@@ -38,7 +38,7 @@ $Version = "${env:KOKORO_BUILD_NUMBER}.0.0"
 $Nuget = $env:TEMP + "\nuget.exe"
 (New-Object System.Net.WebClient).DownloadFile($NugetDownloadUrl, $Nuget)
 
-function Clone-Repository($RepositoryUrl, $RepositoryName) 
+function Clone-Repository($RepositoryUrl) 
 {
 	Write-Host "========================================================"
 	Write-Host "=== Cloning respository $RepositoryName"
@@ -51,11 +51,11 @@ function Clone-Repository($RepositoryUrl, $RepositoryName)
 		Pop-Location
 	}
 	else {
-		& git clone $RepositoryUrl | Out-Default
+		& git clone --depth 1 $RepositoryUrl | Out-Default
 	}
 }
 
-function Checkout-Repository($RepositoryName, $Tag)
+function Checkout-Repository($Tag)
 {
 	Write-Host "========================================================"
 	Write-Host "=== Checking out sources $RepositoryName"
@@ -73,7 +73,7 @@ function Checkout-Repository($RepositoryName, $Tag)
 	}
 }
 
-function Build-Project($RepositoryName, $PackageVersion)
+function Build-Project($PackageVersion)
 {
 	Write-Host "========================================================"
 	Write-Host "=== Building solution $RepositoryName"
@@ -131,7 +131,7 @@ function Publish-PackageToLocalNugetRepository
 	}
 }
 
-Clone-Repository -RepositoryUrl $GithubUrl -RepositoryName $RepositoryName
-Checkout-Repository -RepositoryName $RepositoryName -Tag $CommitSha
-Build-Project -RepositoryName $RepositoryName -PackageVersion $Version
+Clone-Repository -RepositoryUrl $GithubUrl
+Checkout-Repository -Tag $CommitSha
+Build-Project -PackageVersion $Version
 Publish-PackageToLocalNugetRepository
