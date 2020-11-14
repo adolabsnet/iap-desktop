@@ -123,19 +123,26 @@ $(SYMBOLS_PACKAGE): $(MAIN_ASSEMBLY)
 		-ProductVersion $(BINARY_VERSION) \
 		-Configuration $(CONFIGURATION)
 		
-third_party\vtnetcore\VtNetCore\bin\Release\vtnetcore.$(BINARY_VERSION).nupkg:
+packages\vtnetcore.$(BINARY_VERSION)\vtnetcore.$(BINARY_VERSION).nupkg:
 	cd third_party
-	$(MAKE) CONFIGURATION=$(CONFIGURATION) VTNETCORE_VERSION=$(BINARY_VERSION)
+	$(MAKE) CONFIGURATION=$(CONFIGURATION) VTNETCORE_VERSION=$(BINARY_VERSION) vtnetcore 
 	cd ..
 
-packages\vtnetcore.$(BINARY_VERSION)\vtnetcore.$(BINARY_VERSION).nupkg: \
-		third_party\vtnetcore\VtNetCore\bin\Release\vtnetcore.$(BINARY_VERSION).nupkg
 	nuget install vtnetcore \
 		-Source $(MAKEDIR)\third_party\vtnetcore\VtNetCore\bin\Release\ \
 		-OutputDirectory packages \
 		-DependencyVersion Ignore
 
-vtnetcore: packages\vtnetcore.$(BINARY_VERSION)\vtnetcore.$(BINARY_VERSION).nupkg
+packages\libssh2.$(BINARY_VERSION)\libssh2.$(BINARY_VERSION).nupkg:
+	cd third_party
+	$(MAKE) CONFIGURATION=$(CONFIGURATION) LIBSSH2_VERSION=$(BINARY_VERSION) libssh2
+	cd ..
+
+	nuget install libssh2 \
+		-Source $(MAKEDIR)\third_party\vcpkg\installed\libssh2-x86-windows-mixed\bin\ \
+		-OutputDirectory packages \
+		-DependencyVersion Ignore
+
 #------------------------------------------------------------------------------
 # Main targets
 #------------------------------------------------------------------------------
@@ -173,6 +180,10 @@ check-copyright-headers:
 	$(POWERSHELL) $(MAKEDIR)\scripts\check-copyright-headers.ps1
 
 build: $(MAIN_ASSEMBLY)
+
+third_party: packages\vtnetcore.$(BINARY_VERSION)\vtnetcore.$(BINARY_VERSION).nupkg \
+			 packages\libssh2.$(BINARY_VERSION)\libssh2.$(BINARY_VERSION).nupkg
+
 
 test: $(NUNIT_ASSEMBLIES)
 	@echo "========================================================"

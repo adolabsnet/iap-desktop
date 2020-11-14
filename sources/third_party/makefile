@@ -27,6 +27,8 @@ VTNETCORE_VERSION = 1.2.8
 VCPKG_TAG = 2020.07
 VCPKG_URL = https://github.com/microsoft/vcpkg.git
 
+LIBSSH2_VERSION = 1.2.8
+
 default: build
 
 #------------------------------------------------------------------------------
@@ -54,6 +56,8 @@ $(MAKEDIR)\vtnetcore\VtNetCore\bin\$(CONFIGURATION)\vtnetcore.$(VTNETCORE_VERSIO
 		"$(MAKEDIR)\vtnetcore\VtNetCore\VtNetCore.csproj"
 
 	cd ..
+
+vtnetcore: $(MAKEDIR)\vtnetcore\VtNetCore\bin\$(CONFIGURATION)\vtnetcore.$(VTNETCORE_VERSION).nupkg
 
 #------------------------------------------------------------------------------
 # vcpkg
@@ -89,6 +93,30 @@ $(MAKEDIR)\vcpkg\installed\libssh2-x86-windows-mixed\bin\libssh2.dll: $(MAKEDIR)
 		--overlay-ports=$(MAKEDIR)\vcpkg-ports \
 		--overlay-triplets=$(MAKEDIR)\vcpkg-triplets
 
+$(MAKEDIR)\vcpkg\installed\libssh2-x86-windows-mixed\bin\libssh2.$(LIBSSH2_VERSION).nupkg: \
+		$(MAKEDIR)\vcpkg\installed\libssh2-x86-windows-mixed\bin\libssh2.dll
+	@echo "========================================================"
+	@echo "=== Building libssh2 nuget package                   ==="
+	@echo "========================================================"
+	nuget pack -OutputDirectory $(MAKEDIR)\vcpkg\installed\libssh2-x86-windows-mixed\bin\ <<libssh2.nuspec
+<?xml version="1.0"?>
+<package>
+  <metadata>
+    <id>libssh2</id>
+    <version>$(LIBSSH2_VERSION)</version>
+    <authors>https://www.libssh2.org/</authors>
+    <owners>https://www.libssh2.org/</owners>
+    <requireLicenseAcceptance>false</requireLicenseAcceptance>
+    <description>libssh2 is a client-side C library implementing the SSH2 protocol</description>
+  </metadata>
+  <files>
+    <file src="vcpkg\installed\libssh2-x86-windows-mixed\bin\libssh2.dll" target="runtimes\win-x86\native" />
+  </files>
+</package>
+<<NOKEEP
+
+libssh2: $(MAKEDIR)\vcpkg\installed\libssh2-x86-windows-mixed\bin\libssh2.$(LIBSSH2_VERSION).nupkg
+
 #------------------------------------------------------------------------------
 # Main targets
 #------------------------------------------------------------------------------
@@ -96,6 +124,3 @@ $(MAKEDIR)\vcpkg\installed\libssh2-x86-windows-mixed\bin\libssh2.dll: $(MAKEDIR)
 clean:
 	rd /S /Q VtNetCore
 	rd /S /Q vcpkg
-
-build: $(MAKEDIR)\vtnetcore\VtNetCore\bin\$(CONFIGURATION)\vtnetcore.$(VTNETCORE_VERSION).nupkg \
-	   $(MAKEDIR)\vcpkg\installed\libssh2-x86-windows-mixed\bin\libssh2.dll
