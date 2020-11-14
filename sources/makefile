@@ -122,7 +122,20 @@ $(SYMBOLS_PACKAGE): $(MAIN_ASSEMBLY)
 	$(POWERSHELL) $(MAKEDIR)\scripts\package-symbols.ps1 \
 		-ProductVersion $(BINARY_VERSION) \
 		-Configuration $(CONFIGURATION)
+		
+third_party\vtnetcore\VtNetCore\bin\Release\vtnetcore.$(BINARY_VERSION).nupkg:
+	cd third_party
+	$(MAKE) CONFIGURATION=$(CONFIGURATION) VTNETCORE_VERSION=$(BINARY_VERSION)
+	cd ..
 
+packages\vtnetcore.$(BINARY_VERSION)\vtnetcore.$(BINARY_VERSION).nupkg: \
+		third_party\vtnetcore\VtNetCore\bin\Release\vtnetcore.$(BINARY_VERSION).nupkg
+	nuget install vtnetcore \
+		-Source $(MAKEDIR)\third_party\vtnetcore\VtNetCore\bin\Release\ \
+		-OutputDirectory packages \
+		-DependencyVersion Ignore
+
+vtnetcore: packages\vtnetcore.$(BINARY_VERSION)\vtnetcore.$(BINARY_VERSION).nupkg
 #------------------------------------------------------------------------------
 # Main targets
 #------------------------------------------------------------------------------
@@ -140,6 +153,10 @@ clean:
 	@echo "========================================================"
 
 	$(POWERSHELL) $(MAKEDIR)\scripts\clean.ps1
+	
+	cd third_party
+	$(MAKE) clean
+	cd ..
 
 restore:
 	@echo "========================================================"
