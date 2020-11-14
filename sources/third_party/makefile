@@ -24,6 +24,9 @@ VTNETCORE_SHA = 9e68f5561dc52edb780615b3fe133289216b3dba
 VTNETCORE_URL = https://github.com/darrenstarr/VtNetCore.git
 VTNETCORE_VERSION = 1.2.8
 
+VCPKG_TAG = 2020.07
+VCPKG_URL = https://github.com/microsoft/vcpkg.git
+
 default: build
 
 #------------------------------------------------------------------------------
@@ -53,12 +56,46 @@ $(MAKEDIR)\vtnetcore\VtNetCore\bin\$(CONFIGURATION)\vtnetcore.$(VTNETCORE_VERSIO
 	cd ..
 
 #------------------------------------------------------------------------------
+# vcpkg
+#------------------------------------------------------------------------------
+
+$(MAKEDIR)\vcpkg\bootstrap-vcpkg.bat:
+	@echo "========================================================"
+	@echo "=== Checking out vcpkg                               ==="
+	@echo "========================================================"
+
+	git clone $(VCPKG_URL) $(MAKEDIR)\vcpkg
+
+$(MAKEDIR)\vcpkg\vcpkg.exe: $(MAKEDIR)\vcpkg\bootstrap-vcpkg.bat
+	@echo "========================================================"
+	@echo "=== Building vcpkg                                   ==="
+	@echo "========================================================"
+	cd $(MAKEDIR)\vcpkg
+	git checkout $(VCPKG_TAG)
+	cd ..
+	
+	$(MAKEDIR)\vcpkg\bootstrap-vcpkg.bat
+
+#------------------------------------------------------------------------------
+# libssh2
+#------------------------------------------------------------------------------
+
+$(MAKEDIR)\vcpkg\installed\libssh2-x86-windows-mixed\bin\libssh2.dll: $(MAKEDIR)\vcpkg\vcpkg.exe
+	@echo "========================================================"
+	@echo "=== Building libssh2                                 ==="
+	@echo "========================================================"
+	$(MAKEDIR)\vcpkg\vcpkg.exe install libssh2 \
+		--triplet libssh2-x86-windows-mixed \
+		--overlay-ports=$(MAKEDIR)\vcpkg-ports \
+		--overlay-triplets=$(MAKEDIR)\vcpkg-triplets
+
+#------------------------------------------------------------------------------
 # Main targets
 #------------------------------------------------------------------------------
 
 clean:
 	rd /S /Q VtNetCore
+	rd /S /Q vcpkg
 
-build-vtnetcore: $(MAKEDIR)\vtnetcore\VtNetCore\bin\$(CONFIGURATION)\vtnetcore.$(VTNETCORE_VERSION).nupkg
-
-build: build-vtnetcore
+build: $(MAKEDIR)\vtnetcore\VtNetCore\bin\$(CONFIGURATION)\vtnetcore.$(VTNETCORE_VERSION).nupkg \
+	   $(MAKEDIR)\vcpkg\installed\libssh2-x86-windows-mixed\bin\libssh2.dll

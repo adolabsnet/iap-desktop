@@ -268,7 +268,8 @@ sources/Google.Solutions.IapDesktop/OAuthClient.cs
 *.tfstate
 *.tfstate.backup
 
-sources/third_party/*/
+sources/third_party/vcpkg/
+sources/third_party/vtnetcore/
 source/coveragereport/
 source/opencovertests.xml
 source/sponge_log.xml
